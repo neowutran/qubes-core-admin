@@ -269,9 +269,14 @@ async def void_coros_maybe(values):
         with each other. If there were exceptions, raise the leftmost
         one (not necessarily chronologically first). Return nothing.
     '''
-    coros = [val for val in values if asyncio.iscoroutine(val)]
-    if coros:
-        done, _ = await asyncio.wait(coros)
+    tasks_list = set()
+    for thing in values:
+        if asyncio.iscoroutine(thing):
+            task = asyncio.create_task(thing)
+            tasks_list.add(task)
+
+    if len(tasks_list) > 0:
+        done, _ = await asyncio.wait(tasks_list)
         for task in done:
             task.result()  # re-raises exception if task failed
 
