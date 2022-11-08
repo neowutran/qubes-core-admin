@@ -177,7 +177,7 @@ class QubesInternalAPI(qubes.api.AbstractQubesAPI):
 
         # FIXME: some timeout?
         if processes:
-            await asyncio.wait([p.wait() for p in processes])
+            await asyncio.wait([asyncio.create_task(p.wait()) for p in processes])
 
         coros = []
         # then suspend/pause VMs
@@ -185,7 +185,7 @@ class QubesInternalAPI(qubes.api.AbstractQubesAPI):
             if isinstance(vm, qubes.vm.adminvm.AdminVM):
                 continue
             if vm.is_running():
-                coros.append(vm.suspend())
+                coros.append(asyncio.create_task(vm.suspend()))
         if coros:
             await asyncio.wait(coros)
 
@@ -203,7 +203,7 @@ class QubesInternalAPI(qubes.api.AbstractQubesAPI):
             if isinstance(vm, qubes.vm.adminvm.AdminVM):
                 continue
             if vm.get_power_state() in ["Paused", "Suspended"]:
-                coros.append(vm.resume())
+                coros.append(asyncio.create_task(vm.resume()))
         if coros:
             await asyncio.wait(coros)
 
